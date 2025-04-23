@@ -1,6 +1,6 @@
 # Travel Reservations App
 
-This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS with Tailwind CSS for the frontend. The application uses local JSON data to simulate a database.
+This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS for the frontend. The application uses local JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
 ## Features
 
@@ -12,7 +12,7 @@ This project is a simple web application for managing hotel reservations. It is 
 ## Technologies Used
 
 - **Backend**: Flask (Python)
-- **Frontend**: VueJS, Tailwind CSS
+- **Frontend**: VueJS (loaded via CDN), Tailwind CSS (via CDN)
 - **Data Storage**: Local JSON files
 
 ## Prerequisites
@@ -21,28 +21,25 @@ Before you begin, ensure you have the following installed:
 
 - Python 3.x
 - pip3 (Python package installer)
-- Node.js (which includes npm)
 
 ## Project Structure
 
 ```
 project-root/
-|-- static/          # Contains static files (Compiled CSS/JS, images)
-|   |-- css/         # Compiled Tailwind CSS
-|   |-- js/          # Compiled VueJS code
-|-- src/             # Frontend source files (Vue components, main JS, base CSS)
-|   |-- components/  # Vue components
-|   |-- main.js      # Main Vue application entry point
-|   |-- index.css    # Base CSS with Tailwind directives
-|-- templates/       # Contains HTML templates for Flask (e.g., index.html loading the Vue app)
+|-- static/          # Contains static files served directly
+|   |-- js/          # Copied JavaScript application code
+|       |-- main.js
+|-- src/             # Frontend source file (not directly served)
+|   |-- main.js      # Contains all Vue component logic and templates
+|-- templates/       # Contains HTML templates for Flask
+|   |-- index.html   # Loads Vue/Tailwind CDN and static/js/main.js
 |-- app.py           # Main Flask application
 |-- data.json        # Local JSON file for storing hotel and reservation data
-|-- package.json     # Node.js dependencies
-|-- tailwind.config.js # Tailwind configuration
-|-- postcss.config.js  # PostCSS configuration (often used with Tailwind)
+|-- requirements.txt # Python dependencies
 |-- README.md        # Project documentation
+|-- LICENSE          # Project License
+|-- Changelog.md     # Change history
 ```
-*(Note: The exact frontend structure might vary based on your VueJS project setup)*
 
 ## Setup Instructions
 
@@ -58,55 +55,64 @@ project-root/
     python3 -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-    # Install Flask and other Python dependencies
-    pip install flask
+    # Install Python dependencies
+    pip install -r requirements.txt
 
-    # Consider adding a requirements.txt file
+    # Add a requirements.txt file
     pip freeze > requirements.txt
     ```
 
-3.  **Install Frontend Dependencies**:
+3.  **Prepare Frontend JavaScript**:
+    The frontend JavaScript (`src/main.js`) needs to be copied to the static directory to be served by Flask.
     ```bash
-    # Install Node.js dependencies (VueJS, Tailwind CSS, etc.)
-    npm install
-    ```
+    # On macOS/Linux
+    cp src/main.js static/js/main.js
 
-4.  **Build Frontend Assets**:
-    ```bash
-    # Compile VueJS and Tailwind CSS for production
-    npm run build
+    # On Windows
+    copy src\main.js static\js\main.js
     ```
+    *(Note: You need to repeat this copy step whenever you modify `src/main.js`)*
 
-5.  **Run the Application (Production Mode)**:
+4.  **Run the Application**:
     ```bash
     # Ensure your virtual environment is active
-    python app.py
+    python3 app.py
+    ```
+    *(Alternatively, for development mode with auto-reload for backend changes):*
+    ```bash
+    export FLASK_DEBUG=1 # On Windows use `set FLASK_DEBUG=1`
+    python3 -m flask run
     ```
 
-6.  **Access the application**:
+5.  **Access the application**:
     Open your browser and navigate to `http://127.0.0.1:5000`.
 
 ## Development
 
-For development, you can run the Flask backend and the Vue frontend development server separately. This allows for features like hot-reloading.
+Development involves running the Flask backend and manually copying the frontend JavaScript file after making changes.
 
 1.  **Run the Flask Backend (Development Mode)**:
     ```bash
     # Ensure your virtual environment is active
-    # Set environment variables (optional but recommended)
-    export FLASK_APP=app.py  # On Windows use `set FLASK_APP=app.py`
-    export FLASK_ENV=development # On Windows use `set FLASK_ENV=development`
-
-    flask run
+    export FLASK_DEBUG=1 # On Windows use `set FLASK_DEBUG=1`
+    python3 -m flask run
     ```
-    The backend will typically run on `http://127.0.0.1:5000`.
+    The backend will run on `http://127.0.0.1:5000` and automatically reload when backend Python files change.
 
-2.  **Run the Vue Frontend Development Server**:
+2.  **Modify Frontend JavaScript**:
+    Edit the `src/main.js` file.
+
+3.  **Copy Updated Frontend JavaScript**:
+    After saving changes to `src/main.js`, copy it to the static folder:
     ```bash
-    # In a separate terminal
-    npm run serve # Or the command specified in your package.json for development
+    # On macOS/Linux
+    cp src/main.js static/js/main.js
+
+    # On Windows
+    copy src\main.js static\js\main.js
     ```
-    The frontend development server will usually run on a different port (e.g., `http://localhost:8080`). Access the application via this URL during development.
+
+4.  **Refresh Browser**: Refresh your browser page (`http://127.0.0.1:5000`) to see the frontend changes.
 
 ## Usage
 
