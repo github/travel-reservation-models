@@ -1,0 +1,42 @@
+{
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Standard Queen",
+      "availability": 5
+    },
+    {
+      "id": 2,
+      "name": "Deluxe King",
+      "availability": 3
+    },
+    {
+      "id": 3,
+      "name": "Budget Twin",
+      "availability": 10
+    }
+  ],
+  "reservations": [
+    {
+      "id": "res123",
+      "roomId": 1,
+      "guestName": "John Doe",
+      "checkIn": "2025-05-01",
+      "checkOut": "2025-05-05"
+    },
+    {
+      "id": "res456",
+      "roomId": 3,
+      "guestName": "Jane Smith",
+      "checkIn": "2025-06-10",
+      "checkOut": "2025-06-12"
+    },
+    {
+      "id": "3d09a193-2382-467b-8c54-bc3aad6ca19a",
+      "roomId": 2,
+      "guestName": "Jon Peck",
+      "checkIn": "2025-04-22",
+      "checkOut": "2025-04-23"
+    }
+  ]
+}
