@@ -1,0 +1,28 @@
+{
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Standard Queen",
+      "availability": 4
+    },
+    {
+      "id": 2,
+      "name": "Deluxe King",
+      "availability": 3
+    },
+    {
+      "id": 3,
+      "name": "Executive Suite",
+      "availability": 2
+    }
+  ],
+  "reservations": [
+    {
+      "roomId": 1,
+      "guestName": "Jon",
+      "checkIn": "2025-04-24",
+      "checkOut": "2025-04-25",
+      "id": "3aa0c8fc-820f-4033-b4b2-e87236869fd6"
+    }
+  ]
+}
