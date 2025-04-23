@@ -14,3 +14,4 @@
 ## For Python Projects Only
 - always use a Python3 virtual environment: if no venv exists, create one and activate
 - never use `flask run`, use `python3 -m flask run` instead
+- always use and update a requirements.txt file for Python modules
