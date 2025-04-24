@@ -2,6 +2,10 @@
 
 This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS for the frontend. The application uses local JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
+## Executive Summary
+
+The Travel Reservations App provides a user-friendly interface for managing hotel room bookings. It allows users to view available rooms, make reservations, and cancel existing bookings. The application is designed with a simple architecture, utilizing Flask for the backend API and VueJS for the interactive frontend. Data is stored in a local JSON file, making it easy to deploy and run without a dedicated database server. This setup is ideal for small-scale projects or for demonstration purposes.
+
 ## Features
 
 - View available hotel rooms.
@@ -137,19 +141,153 @@ Development involves running the Flask backend and manually copying the frontend
 
 The Vue frontend interacts with the Flask backend via the following API endpoints:
 
-*   `GET /api/rooms`: Retrieves a list of all rooms.
-*   `GET /api/reservations`: Retrieves a list of all reservations.
-*   `POST /api/reservations`: Creates a new reservation. Expects JSON payload:
-    ```json
-    {
-      "roomId": 1, // Integer ID of the room
-      "guestName": "Jane Doe", // String
-      "checkIn": "YYYY-MM-DD", // String date
-      "checkOut": "YYYY-MM-DD" // String date
-    }
-    ```
-    Returns the created reservation object on success (201) or an error message (400, 404).
-*   `DELETE /api/reservations/<reservation_id>`: Cancels an existing reservation using its string ID. Returns a success message (200) or an error (404).
+### GET /api/rooms
+
+Retrieves a list of all rooms.
+
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Standard Queen",
+    "availability": 5,
+    "price": 120
+  },
+  {
+    "id": 2,
+    "name": "Deluxe King",
+    "availability": 3,
+    "price": 180
+  }
+]
+```
+
+### GET /api/reservations
+
+Retrieves a list of all reservations.
+
+**Response:**
+
+```json
+[
+  {
+    "id": "res1_abcdef12",
+    "roomId": 1,
+    "guestName": "John Doe",
+    "checkIn": "2025-05-01",
+    "checkOut": "2025-05-05"
+  }
+]
+```
+
+### POST /api/reservations
+
+Creates a new reservation. Expects JSON payload:
+
+**Request Body:**
+
+```json
+{
+  "roomId": 1,
+  "guestName": "Jane Doe",
+  "checkIn": "YYYY-MM-DD",
+  "checkOut": "YYYY-MM-DD"
+}
+```
+
+**Response (Success - 201 Created):**
+
+```json
+{
+  "id": "res2_fedcba21",
+  "roomId": 1,
+  "guestName": "Jane Doe",
+  "checkIn": "YYYY-MM-DD",
+  "checkOut": "YYYY-MM-DD"
+}
+```
+
+**Response (Error - 400 Bad Request):**
+
+```json
+{
+  "error": "Missing required reservation data"
+}
+```
+
+### DELETE /api/reservations/\<reservation_id>
+
+Cancels an existing reservation using its string ID.
+
+**Response (Success - 200 OK):**
+
+```json
+{
+  "message": "Reservation res1_abcdef12 cancelled successfully"
+}
+```
+
+**Response (Error - 404 Not Found):**
+
+```json
+{
+  "error": "Reservation ID res1_abcdef12 not found"
+}
+```
+
+## Workflow Diagrams
+
+### Reservation Workflow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend (VueJS)
+    participant Backend (Flask)
+    participant Data (data.json)
+
+    User->>Frontend: Submits reservation form
+    Frontend->>Backend: POST /api/reservations
+    Backend->>Data: Load data.json
+    alt Room available
+        Backend->>Data: Create reservation
+        Backend->>Data: Save data.json
+        Data-->>Backend: Success
+        Backend-->>Frontend: 201 Created, reservation data
+        Frontend-->>User: Confirmation
+    else Room unavailable
+        Data-->>Backend: Error
+        Backend-->>Frontend: 400 Bad Request, error message
+        Frontend-->>User: Error message
+    end
+```
+
+### Cancellation Workflow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend (VueJS)
+    participant Backend (Flask)
+    participant Data (data.json)
+
+    User->>Frontend: Clicks cancel reservation
+    Frontend->>Backend: DELETE /api/reservations/<reservation_id>
+    Backend->>Data: Load data.json
+    alt Reservation exists
+        Backend->>Data: Delete reservation
+        Backend->>Data: Save data.json
+        Data-->>Backend: Success
+        Backend-->>Frontend: 200 OK, success message
+        Frontend-->>User: Confirmation
+    else Reservation does not exist
+        Data-->>Backend: Error
+        Backend-->>Frontend: 404 Not Found, error message
+        Frontend-->>User: Error message
+    end
+```
 
 ## Environment Variables
 
