@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Reservations</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include VueJS via CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* Add some basic spacing for non-Tailwind elements if needed */
+        body { padding: 2rem; }
+        label { margin-right: 0.5rem; }
+        input, select { margin-bottom: 1rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 0.5rem 1rem; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .error { color: red; margin-top: 0.5rem; }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-green-50 font-sans">
+    {% raw %}
+    <div id="app" class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6 text-teal-700">Hotel Rooms</h1>
+        <div v-if="loadingRooms" class="text-gray-500">Loading rooms...</div>
+        <div v-else id="rooms-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div v-for="room in rooms" :key="room.id" class="bg-white p-4 rounded shadow">
+                <h3 class="text-xl font-semibold text-gray-800">{{ room.name }}</h3>
+                <p class="text-gray-700">Availability: {{ room.availability }}</p>
+                <p class="text-gray-700">Price: ${{ room.price }}</p>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-4 text-teal-600">Make a Reservation</h2>
+        <form @submit.prevent="submitReservation" id="reservation-form" class="bg-white p-6 rounded shadow mb-8">
+            <div class="mb-4">
+                <label for="roomId" class="block text-gray-700">Room:</label>
+                <select id="roomId" v-model="newReservation.roomId" required class="w-full border-gray-300 rounded">
+                    <option disabled value="">Please select a room</option>
+                    <option v-for="room in availableRooms" :value="room.id">
+                        {{ room.name }} (Available: {{ room.availability }}, ${{ room.price }})
+                    </option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="guestName" class="block text-gray-700">Guest Name:</label>
+                <input type="text" id="guestName" v-model="newReservation.guestName" required class="w-full border-gray-300 rounded">
+            </div>
+
+            <div class="mb-4">
+                <label for="checkIn" class="block text-gray-700">Check-in Date:</label>
+                <input type="date" id="checkIn" v-model="newReservation.checkIn" required class="w-full border-gray-300 rounded">
+            </div>
+
+            <div class="mb-4">
+                <label for="checkOut" class="block text-gray-700">Check-out Date:</label>
+                <input type="date" id="checkOut" v-model="newReservation.checkOut" required class="w-full border-gray-300 rounded">
+            </div>
+
+            <button type="submit" class="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">Book Now</button>
+            <p v-if="formError" class="error text-red-500">{{ formError }}</p>
+        </form>
+
+        <h2 class="text-2xl font-bold mb-4 text-teal-600">Current Reservations</h2>
+        <div v-if="loadingReservations" class="text-gray-500">Loading reservations...</div>
+        <div v-else id="reservations-list">
+            <ul v-if="reservations.length > 0">
+                <li v-for="reservation in reservations" :key="reservation.id" class="bg-white p-4 rounded shadow flex justify-between items-center">
+                    <div>
+                        <span class="font-semibold text-gray-800">{{ reservation.guestName }}</span> - Room: {{ getRoomName(reservation.roomId) }} <br>
+                        Check-in: {{ reservation.checkIn }}, Check-out: {{ reservation.checkOut }}
+                    </div>
+                    <button @click="cancelReservation(reservation.id)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm">Cancel</button>
+                </li>
+            </ul>
+            <p v-else class="text-gray-500">No reservations yet.</p>
+        </div>
+        <p v-if="cancelError" class="error text-red-500">{{ cancelError }}</p>
+
+    </div>
+    {% endraw %}
+
+    <!-- Link to JavaScript file -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
