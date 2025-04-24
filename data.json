@@ -1,0 +1,31 @@
+{
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Standard Queen",
+      "availability": 5,
+      "price": 100
+    },
+    {
+      "id": 2,
+      "name": "Deluxe King",
+      "availability": 2,
+      "price": 150
+    },
+    {
+      "id": 3,
+      "name": "Suite",
+      "availability": 2,
+      "price": 250
+    }
+  ],
+  "reservations": [
+    {
+      "roomId": 2,
+      "guestName": "Kedasha",
+      "checkIn": "2025-04-26",
+      "checkOut": "2025-04-30",
+      "id": "630b342b-14eb-4e56-ab68-d451a0bc5e72"
+    }
+  ]
+}

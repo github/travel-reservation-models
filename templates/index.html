@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Reservation</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <!-- Keep yer custom styles if ye have 'em -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <!-- Main container for the app -->
+    <div class="container mt-5" id="app-container">
+        <h1>Hotel Rooms</h1>
+        <!-- Container for room cards -->
+        <div id="rooms-container" class="row mb-4">
+            <!-- Room cards will be loaded here by JavaScript -->
+        </div>
+
+        <h2>Make a Reservation</h2>
+        <!-- Card for the reservation form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="reservation-form">
+                    <div class="mb-3">
+                        <label for="room-select" class="form-label">Room:</label>
+                        <select class="form-select" id="room-select" required>
+                            <option value="" selected disabled>Please select a room</option>
+                            <!-- Room options will be loaded here by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="guest-name" class="form-label">Guest Name:</label>
+                        <input type="text" class="form-control" id="guest-name" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="checkin-date" class="form-label">Check-in Date:</label>
+                            <!-- Placeholder matches the image hint -->
+                            <input type="date" class="form-control" id="checkin-date" placeholder="mm/dd/yyyy" required>
+                        </div>
+                        <div class="col">
+                            <label for="checkout-date" class="form-label">Check-out Date:</label>
+                            <!-- Placeholder matches the image hint -->
+                            <input type="date" class="form-control" id="checkout-date" placeholder="mm/dd/yyyy" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Book Now</button>
+                </form>
+            </div>
+        </div>
+
+        <h2>Current Reservations</h2>
+        <!-- Container for current reservations -->
+        <div id="reservations-container">
+            <!-- Reservations will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Link to the JavaScript file -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
