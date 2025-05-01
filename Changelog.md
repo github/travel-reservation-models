@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2025-04-30
+
+### Changed
+- Converted Python Netlify Functions to pure JavaScript implementations
+- Removed Python dependencies as they are not supported on Netlify.com
+- Added uuid npm package for generating reservation IDs
+- Updated package.json with correct dependencies
+
+### Removed
+- Python function handlers (get_rooms/handler.py and manage_reservations/handler.py)
+- Python-specific configuration files
+
 ## [1.1.4] - 2025-04-30
 
 ### Fixed

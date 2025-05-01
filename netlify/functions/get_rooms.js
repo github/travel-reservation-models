@@ -1,78 +1,74 @@
-const { spawn } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
-exports.handler = async (event, context) => {
-  return new Promise((resolve, reject) => {
-    // Try to find the Python script in development and production paths
-    let pythonScriptPath = path.join(__dirname, 'get_rooms', 'handler.py');
-    if (!fs.existsSync(pythonScriptPath)) {
-      // Check if we're in the Netlify development server path
-      const devPath = path.join(process.cwd(), 'netlify', 'functions', 'get_rooms', 'handler.py');
-      if (fs.existsSync(devPath)) {
-        pythonScriptPath = devPath;
-      }
+function findDataFile() {
+  const possiblePaths = [
+    path.join(__dirname, '..', '..', 'data.json'),
+    path.join(process.cwd(), 'data.json'),
+    path.join(process.env.NETLIFY_WORKSPACE_ROOT || '', 'data.json')
+  ];
+
+  for (const path of possiblePaths) {
+    if (fs.existsSync(path)) {
+      return path;
     }
+  }
+  return null;
+}
 
-    if (!fs.existsSync(pythonScriptPath)) {
-      console.error('Could not find Python script at:', pythonScriptPath);
-      resolve({
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Configuration error: Python script not found' })
-      });
-      return;
-    }
+function loadData() {
+  const dataPath = findDataFile();
+  if (!dataPath) {
+    console.warn("Could not find data.json in any expected location");
+    return { rooms: [], reservations: [] };
+  }
 
-    console.log('Using Python script at:', pythonScriptPath);
-    const python = spawn('python3', [pythonScriptPath]);
-    
-    let dataString = '';
-    let errorString = '';
+  try {
+    const data = fs.readFileSync(dataPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error reading data file:", error);
+    return { rooms: [], reservations: [] };
+  }
+}
 
-    python.stdin.write(JSON.stringify({ event, context }));
-    python.stdin.end();
+exports.handler = async (event) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
 
-    python.stdout.on('data', data => {
-      dataString += data.toString();
-    });
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers,
+      body: ''
+    };
+  }
 
-    python.stderr.on('data', data => {
-      errorString += data.toString();
-      console.error('Python stderr:', errorString);
-    });
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
 
-    python.on('close', code => {
-      if (code !== 0) {
-        console.error('Python process exited with code:', code);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Python script failed', stderr: errorString })
-        });
-        return;
-      }
-
-      try {
-        const result = JSON.parse(dataString);
-        resolve(result);
-      } catch (e) {
-        console.error('Failed to parse Python output:', e);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ 
-            error: 'Invalid response from Python script',
-            stdout: dataString,
-            stderr: errorString
-          })
-        });
-      }
-    });
-
-    python.on('error', (err) => {
-      console.error('Failed to start Python process:', err);
-      resolve({
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to execute Python script: ' + err.message })
-      });
-    });
-  });
+  try {
+    const data = loadData();
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(data.rooms)
+    };
+  } catch (error) {
+    console.error("Error in handler:", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
 };

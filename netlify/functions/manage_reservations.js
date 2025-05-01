@@ -1,78 +1,167 @@
-const { spawn } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
-exports.handler = async (event, context) => {
-  return new Promise((resolve, reject) => {
-    // Try to find the Python script in development and production paths
-    let pythonScriptPath = path.join(__dirname, 'manage_reservations', 'handler.py');
-    if (!fs.existsSync(pythonScriptPath)) {
-      // Check if we're in the Netlify development server path
-      const devPath = path.join(process.cwd(), 'netlify', 'functions', 'manage_reservations', 'handler.py');
-      if (fs.existsSync(devPath)) {
-        pythonScriptPath = devPath;
-      }
+function findDataFile() {
+  const possiblePaths = [
+    path.join(__dirname, '..', '..', 'data.json'),
+    path.join(process.cwd(), 'data.json'),
+    path.join(process.env.NETLIFY_WORKSPACE_ROOT || '', 'data.json')
+  ];
+
+  for (const path of possiblePaths) {
+    if (fs.existsSync(path)) {
+      return path;
     }
+  }
+  return null;
+}
 
-    if (!fs.existsSync(pythonScriptPath)) {
-      console.error('Could not find Python script at:', pythonScriptPath);
-      resolve({
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Configuration error: Python script not found' })
-      });
-      return;
+function loadData() {
+  const dataPath = findDataFile();
+  if (!dataPath) {
+    console.warn("Could not find data.json in any expected location");
+    return { rooms: [], reservations: [] };
+  }
+
+  try {
+    const data = fs.readFileSync(dataPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error reading data file:", error);
+    return { rooms: [], reservations: [] };
+  }
+}
+
+function saveData(data) {
+  const dataPath = findDataFile();
+  if (!dataPath) {
+    console.warn("Could not find data.json to save");
+    return;
+  }
+
+  try {
+    fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error saving data file:", error);
+    throw error;
+  }
+}
+
+exports.handler = async (event) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers,
+      body: ''
+    };
+  }
+
+  try {
+    const data = loadData();
+
+    switch (event.httpMethod) {
+      case 'GET':
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(data.reservations)
+        };
+
+      case 'POST':
+        try {
+          const body = JSON.parse(event.body || '{}');
+          const newReservation = {
+            id: uuidv4(),
+            roomId: body.roomId,
+            guestName: body.guestName,
+            checkIn: body.checkIn,
+            checkOut: body.checkOut
+          };
+
+          // Update room availability
+          const room = data.rooms.find(r => r.id === newReservation.roomId);
+          if (!room) {
+            return {
+              statusCode: 404,
+              headers,
+              body: JSON.stringify({ error: 'Room not found' })
+            };
+          }
+
+          if (room.availability <= 0) {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Room not available' })
+            };
+          }
+
+          room.availability -= 1;
+          data.reservations.push(newReservation);
+          saveData(data);
+
+          return {
+            statusCode: 201,
+            headers,
+            body: JSON.stringify(newReservation)
+          };
+        } catch (error) {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ error: error.message })
+          };
+        }
+
+      case 'DELETE':
+        const reservationId = event.path.split('/').pop();
+        const reservationIndex = data.reservations.findIndex(r => r.id === reservationId);
+
+        if (reservationIndex === -1) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'Reservation not found' })
+          };
+        }
+
+        const reservation = data.reservations[reservationIndex];
+        // Restore room availability
+        const room = data.rooms.find(r => r.id === reservation.roomId);
+        if (room) {
+          room.availability += 1;
+        }
+
+        data.reservations.splice(reservationIndex, 1);
+        saveData(data);
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ message: 'Reservation cancelled successfully' })
+        };
+
+      default:
+        return {
+          statusCode: 405,
+          headers,
+          body: JSON.stringify({ error: 'Method not allowed' })
+        };
     }
-
-    console.log('Using Python script at:', pythonScriptPath);
-    const python = spawn('python3', [pythonScriptPath]);
-    
-    let dataString = '';
-    let errorString = '';
-
-    python.stdin.write(JSON.stringify({ event, context }));
-    python.stdin.end();
-
-    python.stdout.on('data', data => {
-      dataString += data.toString();
-    });
-
-    python.stderr.on('data', data => {
-      errorString += data.toString();
-      console.error('Python stderr:', errorString);
-    });
-
-    python.on('close', code => {
-      if (code !== 0) {
-        console.error('Python process exited with code:', code);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Python script failed', stderr: errorString })
-        });
-        return;
-      }
-
-      try {
-        const result = JSON.parse(dataString);
-        resolve(result);
-      } catch (e) {
-        console.error('Failed to parse Python output:', e);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ 
-            error: 'Invalid response from Python script',
-            stdout: dataString,
-            stderr: errorString
-          })
-        });
-      }
-    });
-
-    python.on('error', (err) => {
-      console.error('Failed to start Python process:', err);
-      resolve({
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to execute Python script: ' + err.message })
-      });
-    });
-  });
+  } catch (error) {
+    console.error("Error in handler:", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
 };

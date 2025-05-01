@@ -1,6 +1,6 @@
 # Travel Reservations App
 
-This project is a simple web application for managing hotel reservations. It uses Netlify Functions for the backend API endpoints and VueJS for the frontend. The application uses JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
+This project is a simple web application for managing hotel reservations. It uses JavaScript-based Netlify Functions for the backend API endpoints and VueJS for the frontend. The application uses JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
 ## Features
 
@@ -11,7 +11,7 @@ This project is a simple web application for managing hotel reservations. It use
 
 ## Technologies Used
 
-- **Backend**: Netlify Functions (JavaScript/Python)
+- **Backend**: Netlify Functions (JavaScript)
 - **Frontend**: VueJS (loaded via CDN), Tailwind CSS (via CDN)
 - **Data Storage**: JSON files
 - **Deployment**: Netlify
@@ -19,9 +19,7 @@ This project is a simple web application for managing hotel reservations. It use
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-
-- Node.js and npm (for Netlify CLI)
-- Python 3.x (for Python-based Netlify Functions)
+- Node.js and npm (for Netlify CLI and dependencies)
 
 ## Project Structure
 
@@ -31,17 +29,12 @@ project-root/
 |   |-- functions/      # Serverless function endpoints
 |       |-- get_rooms.js
 |       |-- manage_reservations.js
-|       |-- get_rooms/
-|           |-- handler.py
-|       |-- manage_reservations/
-|           |-- handler.py
 |-- static/            # Contains static files served directly
 |   |-- js/           # JavaScript application code
 |       |-- main.js
 |-- templates/         # Contains HTML templates
 |   |-- index.html    # Loads Vue/Tailwind CDN and static/js/main.js
 |-- data.json         # Local JSON file for storing hotel and reservation data
-|-- requirements.txt   # Python dependencies for Netlify Functions
 |-- netlify.toml      # Netlify configuration
 |-- package.json      # Node.js dependencies
 |-- README.md         # Project documentation
@@ -62,8 +55,8 @@ project-root/
    # Install Netlify CLI globally
    npm install -g netlify-cli
 
-   # Install Python dependencies for Netlify Functions
-   pip install -r requirements.txt
+   # Install project dependencies
+   npm install
    ```
 
 ## Development
