@@ -4,6 +4,7 @@
     mkdir -p dist/static
     cp -r static/* dist/static/
     cp templates/index.html dist/index.html
+    cp data.json dist/data.json
     cp -r netlify/functions/* dist/functions/
   """
 
@@ -16,7 +17,7 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  included_files = ["**/*.py"]
+  included_files = ["data.json"]
 
 [build.environment]
   PYTHON_VERSION = "3.13.0"
