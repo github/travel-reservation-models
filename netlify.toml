@@ -1,0 +1,46 @@
+[build]
+  publish = "dist"
+  command = """
+    mkdir -p dist/static
+    cp -r static/* dist/static/
+    cp templates/index.html dist/index.html
+    cp -r netlify/functions/* dist/functions/
+  """
+
+[dev]
+  publish = "dist"
+  port = 8888
+  framework = "#static"
+  targetPort = 8888
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["**/*.py"]
+
+[build.environment]
+  PYTHON_VERSION = "3.13.0"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[[redirects]]
+  from = "/js/*"
+  to = "/static/js/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/static/*"
+  to = "/static/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true

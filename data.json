@@ -1,0 +1,28 @@
+{
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Standard Queen",
+      "availability": 4
+    },
+    {
+      "id": 2,
+      "name": "Deluxe King",
+      "availability": 3
+    },
+    {
+      "id": 3,
+      "name": "Ocean View Suite",
+      "availability": 2
+    }
+  ],
+  "reservations": [
+    {
+      "id": "af231b1a-862d-4855-b732-718dcb576ce0",
+      "roomId": 1,
+      "guestName": "Jon Peck",
+      "checkIn": "2025-04-30",
+      "checkOut": "2025-05-01"
+    }
+  ]
+}

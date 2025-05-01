@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Reservations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="container mx-auto px-4 py-8" v-cloak>
+        <h1 class="text-3xl font-bold mb-8 text-center">Travel Reservations</h1>
+        
+        <!-- Rooms Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Available Rooms</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-for="room in rooms" :key="room.id" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-xl font-semibold mb-2">{{ room.name }}</h3>
+                    <p class="text-gray-600 mb-4">Available: {{ room.availability }}</p>
+                    <button @click="selectRoom(room)" 
+                            :disabled="room.availability === 0"
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        Book Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservation Form -->
+        <div v-if="selectedRoom" class="mb-8 bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Make a Reservation</h2>
+            <form @submit.prevent="makeReservation" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">Guest Name</label>
+                    <input v-model="reservation.guestName" required
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Check-in Date</label>
+                        <input type="date" v-model="reservation.checkIn" required
+                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Check-out Date</label>
+                        <input type="date" v-model="reservation.checkOut" required
+                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" @click="cancelReservationForm"
+                            class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Book Room
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reservations List -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Your Reservations</h2>
+            <div class="space-y-4">
+                <div v-for="res in reservations" :key="res.id" 
+                     class="bg-white rounded-lg shadow p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold">{{ getRoomName(res.roomId) }}</h3>
+                        <p class="text-gray-600">{{ res.guestName }}</p>
+                        <p class="text-sm text-gray-500">
+                            {{ formatDate(res.checkIn) }} - {{ formatDate(res.checkOut) }}
+                        </p>
+                    </div>
+                    <button @click="cancelReservation(res.id)"
+                            class="text-red-500 hover:text-red-600">
+                        Cancel Reservation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

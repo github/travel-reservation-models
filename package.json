@@ -1,0 +1,16 @@
+{
+  "name": "travel-reservation-models",
+  "version": "1.0.0",
+  "description": "Travel Reservations App with Netlify Functions",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "netlify build"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

@@ -180,3 +180,7 @@ cython_debug/
 ._*
 .Spotlight-V100
 .Trashes
+
+# Local Netlify folder
+.netlify
+node_modules

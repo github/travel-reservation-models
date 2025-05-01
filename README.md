@@ -149,6 +149,50 @@ The application uses a `data.json` file to store information about hotel rooms a
 }
 ```
 
+## Netlify Deployment
+
+This application is configured for deployment on Netlify using serverless functions. The backend API routes have been converted to Netlify Functions, and the frontend is served as a static site.
+
+### Deployment Steps
+
+1. **Connect to Netlify**:
+   - Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
+   - Log in to Netlify and click "New site from Git"
+   - Choose your repository and follow the prompts
+
+2. **Configure Build Settings**:
+   - Build command: `mkdir -p dist && cp -r static/* dist/ && cp -r templates/* dist/`
+   - Publish directory: `dist`
+   - These settings are already configured in `netlify.toml`
+
+3. **Environment Variables**:
+   No additional environment variables are required for basic functionality.
+
+### Local Development with Netlify
+
+To test the application locally with Netlify Functions:
+
+1. Install the Netlify CLI:
+   ```bash
+   npm install -g netlify-cli
+   ```
+
+2. Run the development server:
+   ```bash
+   netlify dev
+   ```
+
+3. Access the application at `http://localhost:8888`
+
+### API Endpoints
+
+The API endpoints are now served as Netlify Functions:
+
+- `/.netlify/functions/get_rooms`: Get available rooms
+- `/.netlify/functions/manage_reservations`: Handle reservations (GET, POST, DELETE)
+
+Note: The frontend code automatically handles the correct API paths.
+
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
