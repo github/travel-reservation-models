@@ -1,6 +1,6 @@
 # Travel Reservations App
 
-This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS for the frontend. The application uses local JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
+This project is a simple web application for managing hotel reservations. It uses Netlify Functions for the backend API endpoints and VueJS for the frontend. The application uses JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
 ## Features
 
@@ -11,108 +11,73 @@ This project is a simple web application for managing hotel reservations. It is 
 
 ## Technologies Used
 
-- **Backend**: Flask (Python)
+- **Backend**: Netlify Functions (JavaScript/Python)
 - **Frontend**: VueJS (loaded via CDN), Tailwind CSS (via CDN)
-- **Data Storage**: Local JSON files
+- **Data Storage**: JSON files
+- **Deployment**: Netlify
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- Python 3.x
-- pip3 (Python package installer)
+- Node.js and npm (for Netlify CLI)
+- Python 3.x (for Python-based Netlify Functions)
 
 ## Project Structure
 
 ```
 project-root/
-|-- static/          # Contains static files served directly
-|   |-- js/          # Copied JavaScript application code
+|-- netlify/            # Contains Netlify Functions
+|   |-- functions/      # Serverless function endpoints
+|       |-- get_rooms.js
+|       |-- manage_reservations.js
+|       |-- get_rooms/
+|           |-- handler.py
+|       |-- manage_reservations/
+|           |-- handler.py
+|-- static/            # Contains static files served directly
+|   |-- js/           # JavaScript application code
 |       |-- main.js
-|-- src/             # Frontend source file (not directly served)
-|   |-- main.js      # Contains all Vue component logic and templates
-|-- templates/       # Contains HTML templates for Flask
-|   |-- index.html   # Loads Vue/Tailwind CDN and static/js/main.js
-|-- app.py           # Main Flask application
-|-- data.json        # Local JSON file for storing hotel and reservation data
-|-- requirements.txt # Python dependencies
-|-- README.md        # Project documentation
-|-- LICENSE          # Project License
-|-- Changelog.md     # Change history
+|-- templates/         # Contains HTML templates
+|   |-- index.html    # Loads Vue/Tailwind CDN and static/js/main.js
+|-- data.json         # Local JSON file for storing hotel and reservation data
+|-- requirements.txt   # Python dependencies for Netlify Functions
+|-- netlify.toml      # Netlify configuration
+|-- package.json      # Node.js dependencies
+|-- README.md         # Project documentation
+|-- LICENSE           # Project License
+|-- Changelog.md      # Change history
 ```
 
 ## Setup Instructions
 
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository-url>
-    cd project-root
-    ```
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd travel-reservation-models
+   ```
 
-2.  **Set up Python Virtual Environment & Install Backend Dependencies**:
-    ```bash
-    # Set up Python virtual environment (recommended)
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+2. **Install Dependencies**:
+   ```bash
+   # Install Netlify CLI globally
+   npm install -g netlify-cli
 
-    # Install Python dependencies
-    pip install -r requirements.txt
-
-    # Add a requirements.txt file
-    pip freeze > requirements.txt
-    ```
-
-3.  **Prepare Frontend JavaScript**:
-    The frontend JavaScript (`src/main.js`) needs to be copied to the static directory to be served by Flask.
-    ```bash
-    # On macOS/Linux
-    cp src/main.js static/js/main.js
-
-    # On Windows
-    copy src\main.js static\js\main.js
-    ```
-    *(Note: You need to repeat this copy step whenever you modify `src/main.js`)*
-
-4.  **Run the Application**:
-    ```bash
-    # Ensure your virtual environment is active
-    python3 app.py
-    ```
-    *(Alternatively, for development mode with auto-reload for backend changes):*
-    ```bash
-    export FLASK_DEBUG=1 # On Windows use `set FLASK_DEBUG=1`
-    python3 -m flask run
-    ```
-
-5.  **Access the application**:
-    Open your browser and navigate to `http://127.0.0.1:5000`.
+   # Install Python dependencies for Netlify Functions
+   pip install -r requirements.txt
+   ```
 
 ## Development
 
-Development involves running the Flask backend and manually copying the frontend JavaScript file after making changes.
+1. **Start the Local Development Server**:
+   ```bash
+   netlify dev
+   ```
+   This will start the development server at `http://localhost:8888`
 
-1.  **Run the Flask Backend (Development Mode)**:
-    ```bash
-    # Ensure your virtual environment is active
-    export FLASK_DEBUG=1 # On Windows use `set FLASK_DEBUG=1`
-    python3 -m flask run
-    ```
-    The backend will run on `http://127.0.0.1:5000` and automatically reload when backend Python files change.
-
-2.  **Modify Frontend JavaScript**:
-    Edit the `src/main.js` file.
-
-3.  **Copy Updated Frontend JavaScript**:
-    After saving changes to `src/main.js`, copy it to the static folder:
-    ```bash
-    # On macOS/Linux
-    cp src/main.js static/js/main.js
-
-    # On Windows
-    copy src\main.js static\js\main.js
-    ```
-
-4.  **Refresh Browser**: Refresh your browser page (`http://127.0.0.1:5000`) to see the frontend changes.
+2. **Making Changes**:
+   - Edit frontend code in `static/js/main.js` and `templates/index.html`
+   - Edit Netlify Functions in `netlify/functions/`
+   - Changes will be hot-reloaded automatically
 
 ## Usage
 
@@ -120,20 +85,16 @@ Development involves running the Flask backend and manually copying the frontend
 - Use the reservation form to book a room.
 - View and manage reservations through the "Reservations" page.
 
-## API Endpoints (Example)
+## API Endpoints
 
-The Vue frontend interacts with the Flask backend via the following API endpoints:
+The frontend interacts with these Netlify Function endpoints:
 
--   `GET /api/rooms`: Retrieves a list of available rooms.
--   `GET /api/reservations`: Retrieves a list of all reservations.
--   `POST /api/reservations`: Creates a new reservation. Expects reservation details in the request body.
--   `DELETE /api/reservations/<reservation_id>`: Cancels an existing reservation.
-
-*(Note: Update these endpoints based on your actual implementation in `app.py`)*
+- `/.netlify/functions/get_rooms`: Get available rooms
+- `/.netlify/functions/manage_reservations`: Handle reservations (GET, POST, DELETE)
 
 ## Data Management
 
-The application uses a `data.json` file to store information about hotel rooms and reservations. This file is read and updated by the Flask backend to simulate database operations.
+The application uses a `data.json` file to store information about hotel rooms and reservations. This file is accessed by the Netlify Functions to manage the data.
 
 **Example `data.json` structure:**
 
