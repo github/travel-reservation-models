@@ -8,6 +8,7 @@
     "build": "netlify build"
   },
   "dependencies": {
+    "@netlify/blobs": "^8.2.0",
     "child_process": "^1.0.2",
     "uuid": "^9.0.1"
   },

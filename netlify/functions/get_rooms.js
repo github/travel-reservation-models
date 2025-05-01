@@ -1,34 +1,51 @@
-const fs = require('fs');
-const path = require('path');
+const { getStore } = require('@netlify/blobs');
 
-function findDataFile() {
-  const possiblePaths = [
-    path.join(__dirname, '..', '..', 'data.json'),
-    path.join(process.cwd(), 'data.json'),
-    path.join(process.env.NETLIFY_WORKSPACE_ROOT || '', 'data.json')
-  ];
-
-  for (const path of possiblePaths) {
-    if (fs.existsSync(path)) {
-      return path;
+// Initial data to use if blob store is empty
+const initialData = {
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Standard Queen",
+      "availability": 4
+    },
+    {
+      "id": 2,
+      "name": "Deluxe King",
+      "availability": 3
+    },
+    {
+      "id": 3,
+      "name": "Ocean View Suite",
+      "availability": 2
     }
-  }
-  return null;
-}
+  ],
+  "reservations": []
+};
 
-function loadData() {
-  const dataPath = findDataFile();
-  if (!dataPath) {
-    console.warn("Could not find data.json in any expected location");
-    return { rooms: [], reservations: [] };
-  }
-
+async function loadData() {
   try {
-    const data = fs.readFileSync(dataPath, 'utf8');
+    if (!process.env.NETLIFY_BLOBS_SITE_ID || !process.env.NETLIFY_BLOBS_TOKEN) {
+      throw new Error('Missing required environment variables for Netlify Blobs');
+    }
+
+    const store = getStore({
+      name: 'hotel-reservations',
+      siteID: process.env.NETLIFY_BLOBS_SITE_ID,
+      token: process.env.NETLIFY_BLOBS_TOKEN
+    });
+    
+    let data = await store.get('hotel-data');
+    
+    if (!data) {
+      // Initialize with default data if none exists
+      await store.set('hotel-data', JSON.stringify(initialData));
+      return initialData;
+    }
+    
     return JSON.parse(data);
   } catch (error) {
-    console.error("Error reading data file:", error);
-    return { rooms: [], reservations: [] };
+    console.error("Error accessing blob store:", error);
+    return initialData;
   }
 }
 
@@ -57,7 +74,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const data = loadData();
+    const data = await loadData();
     return {
       statusCode: 200,
       headers,

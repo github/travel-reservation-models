@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.3.2] - 2025-04-30
+
+### Added
+- Environment variable configuration for Netlify Blob Store
+- .env.example file with required variables
+- Documentation for environment variable setup in README.md
+
+### Security
+- Added .env to .gitignore to prevent credential leaks
+- Improved error handling for missing environment variables
+
+## [1.3.1] - 2025-04-30
+
+### Fixed
+- Added required name parameter to Netlify Blob Store initialization
+- Ensured consistent store naming between functions
+
+## [1.3.0] - 2025-04-30
+
+### Changed
+- Replaced filesystem-based data storage with Netlify Blob Store
+- Added @netlify/blobs package for data persistence
+- Updated function handlers to use async/await with Blob Store
+- Removed local data.json file dependencies
+
+### Fixed
+- Fixed EROFS error in Netlify Functions by removing filesystem operations
+- Improved error handling for data storage operations
+
 ## [1.2.0] - 2025-04-30
 
 ### Changed

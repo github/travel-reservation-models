@@ -1,6 +1,6 @@
 # Travel Reservations App
 
-This project is a simple web application for managing hotel reservations. It uses JavaScript-based Netlify Functions for the backend API endpoints and VueJS for the frontend. The application uses JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
+This project is a simple web application for managing hotel reservations. It uses JavaScript-based Netlify Functions for the backend API endpoints and VueJS for the frontend. The application uses Netlify's Blob Store for data persistence. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
 ## Features
 
@@ -13,7 +13,7 @@ This project is a simple web application for managing hotel reservations. It use
 
 - **Backend**: Netlify Functions (JavaScript)
 - **Frontend**: VueJS (loaded via CDN), Tailwind CSS (via CDN)
-- **Data Storage**: JSON files
+- **Data Storage**: Netlify Blob Store
 - **Deployment**: Netlify
 
 ## Prerequisites
@@ -71,6 +71,7 @@ project-root/
    - Edit frontend code in `static/js/main.js` and `templates/index.html`
    - Edit Netlify Functions in `netlify/functions/`
    - Changes will be hot-reloaded automatically
+   - Data persists in Netlify's Blob Store between function invocations
 
 ## Usage
 
@@ -87,10 +88,9 @@ The frontend interacts with these Netlify Function endpoints:
 
 ## Data Management
 
-The application uses a `data.json` file to store information about hotel rooms and reservations. This file is accessed by the Netlify Functions to manage the data.
+The application uses Netlify's Blob Store to persist hotel rooms and reservations data. The data is stored in a JSON format and accessed by the Netlify Functions to manage state.
 
-**Example `data.json` structure:**
-
+**Example data structure:**
 ```json
 {
   "rooms": [
@@ -121,6 +121,23 @@ This application is configured for deployment on Netlify using serverless functi
 
 3. **Environment Variables**:
    No additional environment variables are required for basic functionality.
+
+## Environment Variables
+
+The application requires the following environment variables for Netlify Blob Store:
+
+- `NETLIFY_BLOBS_SITE_ID`: Your Netlify site ID (found in Site settings)
+- `NETLIFY_BLOBS_TOKEN`: Access token for Netlify Blob Store
+
+For local development:
+1. Copy `.env.example` to `.env`
+2. Fill in your Netlify site ID and access token
+3. The Netlify CLI will automatically load these variables during development
+
+For production:
+1. Add these environment variables in your Netlify site settings
+2. Go to Site settings > Build & deploy > Environment variables
+3. Add each variable with its corresponding value
 
 ### Local Development with Netlify
 
