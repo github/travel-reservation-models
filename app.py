@@ -1,41 +1,25 @@
-import json
 import os
+from datetime import datetime
 from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
-from typing import Dict, List, Any, Tuple # Added type hints
+from models import Room, Reservation, init_db, seed_db, get_db
+from sqlalchemy.orm import Session
+from typing import Dict, List, Any, Tuple
 
-load_dotenv() # Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-DATA_FILE = 'data.json'
+# Initialize database tables on startup
+with app.app_context():
+    init_db()
+    seed_db()
 
-# Load data from JSON file
-def load_data() -> Dict[str, List[Dict[str, Any]]]:
-    """Loads room and reservation data from the JSON file."""
-    try:
-        with open(DATA_FILE, 'r') as f:
-            # Ensure both keys exist even if file is empty/malformed initially
-            data = json.load(f)
-            if 'rooms' not in data:
-                data['rooms'] = []
-            if 'reservations' not in data:
-                data['reservations'] = []
-            return data
-    except (FileNotFoundError, json.JSONDecodeError):
-        print(f"Warning: {DATA_FILE} not found or invalid. Starting with empty data.")
-        # Return default structure if file is missing or corrupt
-        return {"rooms": [], "reservations": []}
-
-# Save data to JSON file
-def save_data(data: Dict[str, List[Dict[str, Any]]]) -> None:
-    """Saves the provided data structure to the JSON file."""
-    try:
-        with open(DATA_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
-    except IOError as e:
-        print(f"Error saving data to {DATA_FILE}: {e}")
-
+# Get database session for each request
+def get_session():
+    """Get database session for the current request."""
+    for session in get_db():
+        return session
 
 # Serve the main HTML page
 @app.route('/')
@@ -47,21 +31,23 @@ def index() -> str:
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms() -> Tuple[Any, int]:
     """Returns the list of all rooms."""
-    data = load_data()
-    return jsonify(data.get('rooms', [])), 200
+    db = get_session()
+    rooms = db.query(Room).all()
+    return jsonify([room.to_dict() for room in rooms]), 200
 
 # API endpoint to get reservations
 @app.route('/api/reservations', methods=['GET'])
 def get_reservations() -> Tuple[Any, int]:
     """Returns the list of all reservations."""
-    data = load_data()
-    return jsonify(data.get('reservations', [])), 200
+    db = get_session()
+    reservations = db.query(Reservation).all()
+    return jsonify([reservation.to_dict() for reservation in reservations]), 200
 
 # API endpoint to create a reservation
 @app.route('/api/reservations', methods=['POST'])
 def create_reservation() -> Tuple[Any, int]:
     """Creates a new reservation if the room is available."""
-    data = load_data()
+    db = get_session()
     new_reservation_data = request.json
 
     # --- Input Validation ---
@@ -70,84 +56,79 @@ def create_reservation() -> Tuple[Any, int]:
         return jsonify({"error": "Missing required reservation data"}), 400
 
     try:
-        room_id = int(new_reservation_data['roomId']) # Ensure room ID is an int
+        room_id = int(new_reservation_data['roomId'])
         guest_name = str(new_reservation_data['guestName']).strip()
-        check_in = str(new_reservation_data['checkIn']) # Keep as string for now, could parse/validate dates
-        check_out = str(new_reservation_data['checkOut'])
+        check_in = datetime.strptime(new_reservation_data['checkIn'], '%Y-%m-%d').date()
+        check_out = datetime.strptime(new_reservation_data['checkOut'], '%Y-%m-%d').date()
 
         if not guest_name:
-             return jsonify({"error": "Guest name cannot be empty"}), 400
-        # Basic date validation (more robust needed for real app)
+            return jsonify({"error": "Guest name cannot be empty"}), 400
         if check_out <= check_in:
-             return jsonify({"error": "Check-out date must be after check-in date"}), 400
+            return jsonify({"error": "Check-out date must be after check-in date"}), 400
 
     except (ValueError, TypeError):
-         return jsonify({"error": "Invalid data types in reservation request"}), 400
+        return jsonify({"error": "Invalid data types in reservation request"}), 400
     # --- End Input Validation ---
 
-
     # --- Check Room Availability ---
-    room_to_book = None
-    for room in data.get('rooms', []):
-        if room.get('id') == room_id:
-            if room.get('availability', 0) > 0:
-                room_to_book = room
-                break
-            else:
-                return jsonify({"error": f"Room ID {room_id} is not available"}), 400 # Changed status code
-
-    if not room_to_book:
+    room = db.query(Room).filter(Room.id == room_id).first()
+    if not room:
         return jsonify({"error": f"Room ID {room_id} not found"}), 404
+    if room.availability <= 0:
+        return jsonify({"error": f"Room ID {room_id} is not available"}), 400
     # --- End Check Room Availability ---
 
     # --- Create and Save Reservation ---
-    # Decrement availability (Consider potential race conditions in a real multi-user app)
-    # room_to_book['availability'] -= 1 # Commented out: Let's not modify availability for now
+    # Generate a unique ID (in a real app, use UUID)
+    import os
+    reservation_id = f"res{db.query(Reservation).count() + 1}_{os.urandom(4).hex()}"
 
-    # Generate a more unique ID (e.g., using UUID) in a real app
-    reservation_id = f"res{len(data.get('reservations', [])) + 1}_{os.urandom(4).hex()}"
+    new_reservation = Reservation(
+        id=reservation_id,
+        room_id=room_id,
+        guest_name=guest_name,
+        check_in=check_in,
+        check_out=check_out
+    )
 
-    final_reservation = {
-        "id": reservation_id,
-        "roomId": room_id,
-        "guestName": guest_name,
-        "checkIn": check_in,
-        "checkOut": check_out
-    }
+    try:
+        db.add(new_reservation)
+        # Decrement room availability
+        room.availability -= 1
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": "Failed to create reservation"}), 500
 
-    data.setdefault('reservations', []).append(final_reservation)
-    save_data(data)
-    # --- End Create and Save Reservation ---
-
-    return jsonify(final_reservation), 201
+    return jsonify(new_reservation.to_dict()), 201
 
 # API endpoint to delete a reservation
 @app.route('/api/reservations/<string:reservation_id>', methods=['DELETE'])
 def delete_reservation(reservation_id: str) -> Tuple[Any, int]:
     """Deletes a reservation by its ID."""
-    data = load_data()
-    reservations = data.get('reservations', [])
-    initial_length = len(reservations)
-
-    # Find and remove the reservation
-    data['reservations'] = [res for res in reservations if res.get('id') != reservation_id]
-
-    if len(data['reservations']) == initial_length:
+    db = get_session()
+    
+    reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    if not reservation:
         return jsonify({"error": f"Reservation ID {reservation_id} not found"}), 404
 
-    # Optional: Increment room availability if needed
-    # This requires finding the original room ID from the deleted reservation
-    # and then finding that room in the rooms list to increment its availability.
-    # Add logic here if required.
+    try:
+        # Increment room availability
+        room = db.query(Room).filter(Room.id == reservation.room_id).first()
+        if room:
+            room.availability += 1
+        
+        # Delete the reservation
+        db.delete(reservation)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": "Failed to delete reservation"}), 500
 
-    save_data(data)
     return jsonify({"message": f"Reservation {reservation_id} cancelled successfully"}), 200
 
-
 if __name__ == '__main__':
-    # Use environment variable for debug mode, default to False
     debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
-    # Consider using environment variables for host and port as well
     host = os.environ.get('FLASK_RUN_HOST', '127.0.0.1')
     port = int(os.environ.get('FLASK_RUN_PORT', 5000))
     app.run(host=host, port=port, debug=debug_mode)

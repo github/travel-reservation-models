@@ -1,23 +1,26 @@
 # Travel Reservations App
 
-This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS for the frontend. The application uses local JSON data to simulate a database. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
+This project is a simple web application for managing hotel reservations. It is built using Flask for the backend and VueJS for the frontend. The application uses PostgreSQL for data storage, with SQLAlchemy as the ORM. VueJS and Tailwind CSS are loaded via CDN, eliminating the need for a frontend build step.
 
 ## Executive Summary
 
-The Travel Reservations App provides a user-friendly interface for managing hotel room bookings. It allows users to view available rooms, make reservations, and cancel existing bookings. The application is designed with a simple architecture, utilizing Flask for the backend API and VueJS for the interactive frontend. Data is stored in a local JSON file, making it easy to deploy and run without a dedicated database server. This setup is ideal for small-scale projects or for demonstration purposes.
+The Travel Reservations App provides a user-friendly interface for managing hotel room bookings. It allows users to view available rooms, make reservations, and cancel existing bookings. The application is designed with a modern architecture, utilizing Flask for the backend API, VueJS for the interactive frontend, and PostgreSQL for reliable data storage. This setup is suitable for production use with proper scalability and data persistence.
 
 ## Features
 
-- View available hotel rooms.
-- Make a reservation for an available room.
-- Cancel an existing reservation.
-- View all current reservations.
+- View available hotel rooms
+- Make a reservation for an available room
+- Cancel an existing reservation
+- View all current reservations
+- Persistent data storage with PostgreSQL
+- Transaction support for data integrity
 
 ## Technologies Used
 
 - **Backend**: Flask (Python)
 - **Frontend**: VueJS 3 (loaded via CDN), Tailwind CSS (via CDN)
-- **Data Storage**: Local `data.json` file
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Additional**: python-dotenv for configuration
 
 ## Prerequisites
 
@@ -25,6 +28,7 @@ Before you begin, ensure you have the following installed:
 
 - Python 3.x (3.7+ recommended for type hints)
 - pip (Python package installer)
+- PostgreSQL server (14.0+ recommended)
 
 ## Project Structure
 
@@ -41,7 +45,7 @@ Before you begin, ensure you have the following installed:
 ├── .env.example        # Example environment variables
 ├── .gitignore          # Git ignore rules
 ├── app.py              # Main Flask application (backend API)
-├── data.json           # Data store (rooms, reservations)
+├── models.py           # SQLAlchemy database models
 ├── requirements.txt    # Python dependencies
 ├── README.md           # This file
 └── Changelog.md        # Record of changes
@@ -55,7 +59,23 @@ Before you begin, ensure you have the following installed:
     cd travel-reservation-models
     ```
 
-2.  **Set up Python Virtual Environment & Install Backend Dependencies**:
+2.  **Set up PostgreSQL**:
+    - Install PostgreSQL if not already installed
+    - Start the PostgreSQL service:
+      ```bash
+      brew services start postgresql@14
+      ```
+    - Create a new database:
+      ```bash
+      createdb travel_reservations
+      ```
+    - Verify the database connection:
+      ```bash
+      psql travel_reservations -c "\conninfo"
+      ```
+    You should see a message confirming your connection to the database.
+
+3.  **Set up Python Virtual Environment & Install Backend Dependencies**:
     ```bash
     # Create a virtual environment (recommended)
     python3 -m venv venv
@@ -68,74 +88,70 @@ Before you begin, ensure you have the following installed:
     pip install -r requirements.txt
     ```
 
-3.  **Prepare Frontend JavaScript**:
-    The frontend JavaScript (`src/main.js`) needs to be copied to the static directory to be served by Flask.
-    ```bash
-    # On macOS/Linux
-    cp src/main.js static/js/main.js
-
-    # On Windows
-    # copy src\\main.js static\\js\\main.js
-    ```
-    *(Note: You need to repeat this copy step whenever you modify `src/main.js`)*
-
-4.  **Set up environment variables**:
-    Copy the example environment file:
+4.  **Configure Environment Variables**:
+    Copy the example environment file and update with your database credentials:
     ```bash
     cp .env.example .env
     ```
-    Modify `.env` if necessary (e.g., set `FLASK_DEBUG=1` for development).
-
-5.  **Run the Application**:
-    ```bash
-    # Ensure your virtual environment is active
-    python3 app.py
+    Edit `.env` to set your database connection details:
     ```
-    *(Alternatively, for development mode with auto-reload for backend changes):*
-    ```bash
-    # Ensure your virtual environment is active
-    # export FLASK_APP=app.py # Use `set` on Windows
-    # export FLASK_ENV=development # Optional: enables debug mode and auto-reload
-    # The app.py now reads FLASK_DEBUG from .env, so setting FLASK_ENV is less critical
-    python3 app.py # Will run in debug if FLASK_DEBUG=1 in .env
-    ```
-    *(Or using Flask CLI if preferred):*
-     ```bash
-    # Ensure your virtual environment is active
-    # export FLASK_APP=app.py # Use `set` on Windows
-    python3 -m flask run # Reads FLASK_DEBUG from .env
+    DATABASE_URL=postgresql://user:password@localhost:5432/travel_reservations
+    # Or configure individual components:
+    # DB_HOST=localhost
+    # DB_PORT=5432
+    # DB_NAME=travel_reservations
+    # DB_USER=your_username
+    # DB_PASSWORD=your_password
     ```
 
-
-6.  **Access the application**:
-    Open your browser and navigate to `http://127.0.0.1:5000` (or the host/port specified if changed).
-
-## Development
-
-Development involves running the Flask backend and manually copying the frontend JavaScript file after making changes.
-
-1.  **Run the Flask Backend (Development Mode)**:
-    Ensure `FLASK_DEBUG=1` is set in your `.env` file.
-    ```bash
-    # Ensure your virtual environment is active
-    python3 app.py
-    ```
-    The backend will run on `http://127.0.0.1:5000` (by default) and automatically reload when backend Python files change.
-
-2.  **Modify Frontend JavaScript**:
-    Edit the `src/main.js` file.
-
-3.  **Copy Updated Frontend JavaScript**:
-    After saving changes to `src/main.js`, copy it to the static folder:
+5.  **Prepare Frontend JavaScript**:
+    Copy the frontend JavaScript to the static directory:
     ```bash
     # On macOS/Linux
     cp src/main.js static/js/main.js
-
     # On Windows
     # copy src\\main.js static\\js\\main.js
     ```
 
-4.  **Refresh Browser**: Refresh your browser page (`http://127.0.0.1:5000`) to see the frontend changes.
+6.  **Initialize Database**:
+    The application will automatically create tables and seed initial data when first run.
+    This happens in the `init_db()` and `seed_db()` functions when the Flask app starts.
+
+7.  **Run the Application**:
+    ```bash
+    # Ensure your virtual environment is active
+    python3 app.py
+    ```
+
+8.  **Access the application**:
+    Open your browser and navigate to `http://127.0.0.1:5000`
+
+## Development
+
+For development, ensure `FLASK_DEBUG=1` is set in your `.env` file. The backend will automatically reload when Python files change.
+
+### Database Schema
+
+#### Rooms Table
+```sql
+CREATE TABLE rooms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    availability INTEGER NOT NULL,
+    price FLOAT NOT NULL
+);
+```
+
+#### Reservations Table
+```sql
+CREATE TABLE reservations (
+    id VARCHAR PRIMARY KEY,
+    room_id INTEGER REFERENCES rooms(id),
+    guest_name VARCHAR NOT NULL,
+    check_in DATE NOT NULL,
+    check_out DATE NOT NULL
+);
+```
 
 ## API Endpoints
 
@@ -246,19 +262,19 @@ sequenceDiagram
     participant User
     participant Frontend (VueJS)
     participant Backend (Flask)
-    participant Data (data.json)
+    participant Database (PostgreSQL)
 
     User->>Frontend: Submits reservation form
     Frontend->>Backend: POST /api/reservations
-    Backend->>Data: Load data.json
+    Backend->>Database: Check room availability
     alt Room available
-        Backend->>Data: Create reservation
-        Backend->>Data: Save data.json
-        Data-->>Backend: Success
+        Backend->>Database: Create reservation
+        Backend->>Database: Update room availability
+        Database-->>Backend: Success
         Backend-->>Frontend: 201 Created, reservation data
         Frontend-->>User: Confirmation
     else Room unavailable
-        Data-->>Backend: Error
+        Database-->>Backend: Room not available
         Backend-->>Frontend: 400 Bad Request, error message
         Frontend-->>User: Error message
     end
@@ -271,19 +287,19 @@ sequenceDiagram
     participant User
     participant Frontend (VueJS)
     participant Backend (Flask)
-    participant Data (data.json)
+    participant Database (PostgreSQL)
 
     User->>Frontend: Clicks cancel reservation
     Frontend->>Backend: DELETE /api/reservations/<reservation_id>
-    Backend->>Data: Load data.json
+    Backend->>Database: Find reservation
     alt Reservation exists
-        Backend->>Data: Delete reservation
-        Backend->>Data: Save data.json
-        Data-->>Backend: Success
+        Backend->>Database: Delete reservation
+        Backend->>Database: Update room availability
+        Database-->>Backend: Success
         Backend-->>Frontend: 200 OK, success message
         Frontend-->>User: Confirmation
     else Reservation does not exist
-        Data-->>Backend: Error
+        Database-->>Backend: Not found
         Backend-->>Frontend: 404 Not Found, error message
         Frontend-->>User: Error message
     end
@@ -299,21 +315,12 @@ sequenceDiagram
 
 ## Data Management
 
-The application uses a `data.json` file to store information about hotel rooms and reservations. This file is read from and written to by the Flask backend.
+The application uses PostgreSQL to store information about hotel rooms and reservations. The database schema is managed by SQLAlchemy ORM and consists of two main tables:
 
-**Example `data.json` structure:**
+1. The `rooms` table stores information about hotel rooms, including their availability and pricing
+2. The `reservations` table tracks all bookings, with foreign key relationships to the rooms table
 
-```json
-{
-  "rooms": [
-    { "id": 1, "name": "Standard Queen", "availability": 5 },
-    { "id": 2, "name": "Deluxe King", "availability": 3 }
-  ],
-  "reservations": [
-    { "id": "res1_abcdef12", "roomId": 1, "guestName": "John Doe", "checkIn": "2025-05-01", "checkOut": "2025-05-05" }
-  ]
-}
-```
+The database is automatically initialized with sample data when the application first starts. See the Database Schema section above for the detailed table structures.
 
 ## Contributing
 

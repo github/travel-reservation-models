@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-05-06
+
+### Changed
+- Updated workflow diagrams in README.md to reflect PostgreSQL usage
+- Removed outdated data.json references from documentation
+- Updated Data Management section to describe PostgreSQL schema and initialization
+
+## [0.3.1] - 2025-05-06
+
+### Added
+- PostgreSQL service startup instructions in README.md
+- Database connection verification step in setup guide
+
+## [0.3.0] - 2025-05-06
+
+### Changed
+- Replaced JSON file storage with PostgreSQL database
+- Added SQLAlchemy models for Room and Reservation
+- Updated Flask routes to use database queries instead of file operations
+- Added proper database transaction handling and error management
+- Updated environment configuration to include database connection settings
+
+### Added
+- New dependencies: psycopg2-binary and SQLAlchemy
+- Database initialization and seeding functionality
+- Transaction management for reservation operations
+- Proper database connection handling with session management
+
+### Removed
+- JSON file-based data storage
+- File read/write operations for data management
+
 ## [0.2.2] - 2025-04-24
 
 ### Changed
